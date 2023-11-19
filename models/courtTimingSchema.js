@@ -1,6 +1,6 @@
 const mongoose=require('mongoose')
-
-
+const users=require('./userModel')
+const courts=require('./courtModel')
 const courtTimingSchema=mongoose.Schema({
     date:{
 type:Date,
@@ -16,14 +16,17 @@ required:true
     },
     bookedBy:{
 type:mongoose.Types.ObjectId,
-ref:'users'
+ref: users
     },
     canellation:{
 type:Array
     },
     courtId:{
         type:mongoose.Types.ObjectId,
-        ref:'courts'
+        ref: courts
+    },
+    paymentOrders:{
+        type:Array
     }
 })
 

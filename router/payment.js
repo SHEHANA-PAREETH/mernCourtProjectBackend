@@ -1,0 +1,10 @@
+const express=require('express')
+const { generateorders,paymentsuccess,cancelBooking,walletPayment ,getwalletBalance} = require('../controllers/paymentcontroller')
+const router=express.Router()
+const {userAuth}=require('../middlewares/userAuth')
+router.post('/orders',userAuth,generateorders)
+router.post('/success',userAuth,paymentsuccess)
+router.get('/cancelBooking',userAuth,cancelBooking)
+router.get('/walletpayment',userAuth,walletPayment)
+router.get('/getwalletBalance',userAuth,getwalletBalance)
+module.exports=router

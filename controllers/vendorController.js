@@ -1,5 +1,6 @@
-const express=require('express')
+ const express=require('express')
 const multer =require('multer')
+const USER=require('../models/userModel')
 const COURTSHEDULES=require('../models/courtTimingSchema')
 const COURT = require('../models/courtModel')
 const mongoose=require('mongoose')
@@ -26,7 +27,7 @@ upload(req,res,(err)=>{
         name:req.body.name,
         location:req.body.location,
         description:req.body.description,
-        cost:req.body.cost,
+       
         image:req.files,
         userId:req.userId
     }).save().then((resp)=>{
@@ -56,32 +57,37 @@ const getSinglecourtData=(req,res)=>{
    })
 
 }
-const addcourtTimings=(req,res)=>{
+const  addcourtTimings= (req,res)=>{
     try {
         console.log(req.body);
     let currentDate=new Date(req.body.starEndDate.startingDate)
-    const endDate=new Date(req.body.starEndDate.endingDate)
-  
-   
+    let endDate=new Date(req.body.starEndDate.endingDate)
    const timingObjectArray=[]
+  
+    while(currentDate<=endDate){
+     
+            req.body.slotLists.forEach((obj)=>{
+                timingObjectArray.push({
+                     date:JSON.parse(JSON.stringify(currentDate)) ,
+                     slot:{
+                         name:obj.name,
+                         id:obj.id
+                     },
+                     cost:req.body.cost,
+                     courtId:req.body.courtId
+                 })
+                })   
+             
+            
+        
+             currentDate.setDate(currentDate.getDate()+1)
+    }
+  
+    console.log( timingObjectArray);
    
-   while(currentDate<=endDate){
+   
     
-    req.body.slotLists.forEach((obj)=>{
-       
-        timingObjectArray.push({
-            date:currentDate,
-            slot:{
-                name:obj.name,
-                id:obj.id
-            },
-            cost:req.body.cost,
-            courtId:req.body.courtId
-        })
-    })   
-currentDate.setDate(currentDate.getDate()+1)
-}
-//console.log( timingObjectArray);
+
 COURTSHEDULES.insertMany(timingObjectArray).then((resp)=>{
     res.status(200).json({msg:'shedules added successfully'})
 })
@@ -94,12 +100,42 @@ COURTSHEDULES.insertMany(timingObjectArray).then((resp)=>{
 
 const getLatestUpdatedDate=(req,res)=>{
     console.log(req.query.courtId);
-   COURTSHEDULES.find({courtId:req.query.courtId}).sort({date:-1}).limit(1).select('date').then((resp)=>{
-       console.log(resp[0].date);
-       res.status(200).json({minDate:resp[0].date})
-    }
-)
+    COURTSHEDULES.find({courtId:req.query.courtId}).then((resp)=>{
+if(resp.length===0){
+    
+    res.json({msg:'failed'})
+   
+}
+else
+{
+    COURTSHEDULES.find({courtId:req.query.courtId}).sort({date:-1}).limit(1).select('date').then((resp)=>{
+        console.log(resp[0].date);
+        res.json({msg:'success',minDate:resp[0].date})
+    })
+   
+   
+}
+    })
+  
 
 }
 
-module.exports= {registerNewCourt,myCourts,getSinglecourtData,addcourtTimings,getLatestUpdatedDate}
+const getTableData=(req,res)=>{
+    console.log(req.query.id);
+    console.log(req.query.startDate);
+    console.log(req.query.endDate);
+    COURTSHEDULES.find({courtId:req.query.id,$and:[{date:{$gte:req.query.startDate}},{date:{$lte:req.query.endDate}}]}).then((resp)=>{
+        console.log(resp);
+        res.json({msg:'success',data:resp})
+    })
+    
+}
+const getOwnerDetails=(req,res)=>{
+    console.log(req.query.vendorId);
+USER.findOne({_id:req.query.vendorId}).then((resp)=>{
+    console.log(resp);
+    res.json({msg:'success',data:resp})
+})
+  
+}
+module.exports= {getOwnerDetails,registerNewCourt,myCourts,getSinglecourtData,addcourtTimings,getLatestUpdatedDate,getTableData}
