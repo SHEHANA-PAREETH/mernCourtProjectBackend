@@ -28,8 +28,15 @@ else{
         role=2;//vendor
       }
       else{
-        role=1;//user
+        if(req.body.email==="admin123@gmail.com"){
+          role=3;//admin
+        }
+        else{
+          role=1;//user
+        }
+      
       }
+   
       USER({
         firstName:req.body.firstName,
         lastName:req.body.lastName,
@@ -53,37 +60,45 @@ else{
 
 })}
 
-const userLogin= async (req,res)=>{
+const userLogin = async (req,res)=>{
     console.log(req.body);
    
   const finduser = await  USER.findOne({email:req.body.email})
   console.log(finduser);
+  
   if(finduser)
   {
-    bcrypt
-    .compare(req.body.password, finduser.password1)
-    .then(resp => {
-      console.log(resp ) // return true
-      if(resp){
-          
-          const token=jwt.sign({userId:finduser._id,email:finduser.email,firstName:finduser.firstName,lastName:finduser.lastName,role:finduser.role},process.env.JWT_KEY,{expiresIn:'2d'})
    
-   res.cookie('userJwt',token,{
-    httpOnly:true,
-    samSite:'lax',
-    secure:false,
-    maxAge:24*60*60*1000
-   })
-   console.log(token);
-   finduser.password1=undefined; 
-    res.status(200).json({msg: 'user login success',token:token,user:finduser})
-}
-
-    else{
-      res.json({msg:'password incorrect'})
-    }
-    })
-    .catch(err => console.error(err.message)) 
+      bcrypt
+      .compare(req.body.password, finduser.password1)
+      .then(resp => {
+        console.log(resp ) // return true
+        if(resp){
+            
+            const token=jwt.sign({userId:finduser._id,email:finduser.email,firstName:finduser.firstName,lastName:finduser.lastName,role:finduser.role},process.env.JWT_KEY,{expiresIn:'2d'})
+     
+     res.cookie('userJwt',token,{
+      httpOnly:true,
+      samSite:'lax',
+      secure:false,
+      maxAge:24*60*60*1000
+     })
+     console.log(token);
+     finduser.password1=undefined; 
+     if( finduser.profilepic){
+      finduser.profilepic=undefined; 
+     }
+    
+      res.status(200).json({msg: 'user login success',token:token,user:finduser})
+  }
+  
+      else{
+        res.json({msg:'password incorrect'})
+      }
+      })
+      .catch(err => console.error(err.message)) 
+    
+    
   }
      
   else{

@@ -21,6 +21,9 @@ const userSchema=new mongoose.Schema({
         type:String,
         required:true
     },
+    profilepic:{
+        type:String
+    },
     role:{
         type:Number,
         default:1

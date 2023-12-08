@@ -1,10 +1,41 @@
 const COURT = require('../models/courtModel')
 const mongoose=require('mongoose')
 const COURTSHEDULES=require('../models/courtTimingSchema')
-const getAllCourts=(req,res)=>{
-COURT.find({}).then((resp)=>{
-    res.json({msg:'success',data:resp})
+const USER=require('../models/userModel')
+const multer= require("multer")
+const getAllCourts= async (req,res)=>{
+    console.log(req.query);
+    console.log(req.query.searchText);
+   
+    if(req.query.searchText){
+        console.log(req.query.selectedPage);
+        const page=req.query.selectedPage
+        const pageSize=5
+COURT.find({$or:[
+    {name:{$regex:req.query.searchText,$options:'i'}},
+    {location:{$regex:req.query.searchText,$options:'i'}},
+    {description:{$regex:req.query.searchText,$options:'i'}}
+]}).skip((page -1 )* pageSize).limit(pageSize).then((resp)=>{
+    console.log(resp.length);//total documents
+    res.status(200).json({msg:'success',data:resp,totaldocuments:resp.length})
+}).catch((error)=>{
+    res.status(400).json({msg:'something went wrong'})
 })
+    }
+    else{
+      console.log(req.query.selectedPage);
+      const page=req.query.selectedPage
+      const pageSize=5
+      const documentCount= await COURT.countDocuments()
+      console.log(documentCount); 
+        COURT.find({}).skip((page -1 )* pageSize).limit(pageSize).then((resp)=>{
+            console.log(resp.length);
+            res.status(200).json({msg:'success',data:resp,totaldocuments:documentCount})
+        }).catch((error)=>{
+            res.status(400).json({msg:'something went wrong'})
+        })
+    }
+
 
 }
 
@@ -193,4 +224,49 @@ COURTSHEDULES.aggregate([
 
 
 }
-module.exports={getCancelledUserBookings,getPreviousUserBookings,getAllCourts,getSingleCourt,getSlotsData,getSingleUserBookings}
+const uploadProfilePic=(req,res)=>{
+    const fileStorage=multer.diskStorage({
+        destination:(req,file,cb)=>{
+            cb(null,'public/uploads')
+        },
+        filename:(req,files,cb)=>{
+            cb(null,Date.now()+"-"+files.originalname)
+        }
+    })
+    const upload=multer({storage:fileStorage}).single("image")
+    
+    
+    
+    upload(req,res,(err)=>{
+      
+        console.log(req.file);//single image req.file multiple req.files
+        //enter to db
+       USER.updateOne({_id:req.userId},{$set:{profilepic:req.file.filename}}).then((resp)=>{
+        console.log('uploaded');
+        res.json({msg:'success'})
+       })
+    
+    })
+}
+
+const getProfiepic= async (req,res)=>{
+    console.log('pppp');
+   const result= await  USER.findOne({_id:req.userId},{profilepic:1})
+   console.log(result);
+   if(result.profilepic){
+    console.log(result.profilepic);
+    res.json({msg:"success",url:result.profilepic})
+   }
+   else{
+    res.json({msg:"noprofilepic"})
+   }
+}
+const getNumberofPages= async (req,res)=>{
+    console.log('lll');
+    const documentCount= await COURT.countDocuments()
+   console.log(documentCount); 
+   res.json({numberOfDocuments:documentCount})
+}
+module.exports={getCancelledUserBookings,getPreviousUserBookings,
+    getAllCourts,getSingleCourt,getSlotsData,getSingleUserBookings,
+    uploadProfilePic,getProfiepic,getNumberofPages}

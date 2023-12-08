@@ -1,6 +1,6 @@
 const express=require('express')
 const router=express.Router()
-const {myCourts,registerNewCourt,getSinglecourtData,addcourtTimings,getLatestUpdatedDate,getTableData,getOwnerDetails}=require('../controllers/vendorController')
+const {addslotsoPreviousSlots,getAllShedulesData,myCourts,registerNewCourt,getSinglecourtData,addcourtTimings,getLatestUpdatedDate,getTableData,getOwnerDetails,showSlotBookingDetails}=require('../controllers/vendorController')
 const vendorAuth=require('../middlewares/vendorAuth')
 const { userAuth } = require('../middlewares/userAuth')
 
@@ -13,4 +13,7 @@ router.post('/addcourtTimings',vendorAuth,addcourtTimings)
 router.get('/getlatestupdateddate',vendorAuth,getLatestUpdatedDate)
 router.get('/gettabledata',vendorAuth,getTableData)
 router.get('/getownerdetails',userAuth,getOwnerDetails)
+router.get('/getallshedulesdata',vendorAuth,getAllShedulesData)
+router.get('/showSlotBookingDetails',vendorAuth,showSlotBookingDetails)
+router.post('/addslotsopreviousslots',vendorAuth,addslotsoPreviousSlots)
 module.exports=router
