@@ -65,6 +65,10 @@ const schedules= await COURTSHEDULES.aggregate([
         $group:{
             _id:"$date",slotsData:{$push:{_id:"$_id"}}
         }
+    },{
+        $sort:{
+            _id:1
+        }
     }
 ])
     COURT.findOne({_id:req.query.courtId}).then((resp)=>{
