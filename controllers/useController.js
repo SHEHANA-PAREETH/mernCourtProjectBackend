@@ -39,14 +39,40 @@ COURT.find({$or:[
 
 }
 
-const getSingleCourt=(req,res)=>{
+const getSingleCourt= async (req,res)=>{
     console.log(req.query.courtId);
+    const currentDate= new Date()
+    const slotId=currentDate.getHours()
+currentDate.setUTCHours(0,0,0,0)
+console.log(currentDate);
+const schedules= await COURTSHEDULES.aggregate([
+    {
+        $match:
+        {
+            courtId: new mongoose.Types.ObjectId(req.query.courtId),
+            $expr:{
+                $or:[
+  {$gt:["$date",currentDate]},
+  {$and:[
+      {$eq:["$date",currentDate]},
+      {$gt:["$slot.id",slotId]},
+  ],
+  },
+      ],
+  },
+        }
+    },{
+        $group:{
+            _id:"$date",slotsData:{$push:{_id:"$_id"}}
+        }
+    }
+])
     COURT.findOne({_id:req.query.courtId}).then((resp)=>{
         console.log(resp);
         
         const carousalimages=resp.image
     console.log(carousalimages);
-    res.json({msg:'success',images:carousalimages,name:resp.name,description:resp.description,location:resp.location})
+    res.json({msg:'success',images:carousalimages,name:resp.name,description:resp.description,location:resp.location,schedules:schedules})
     })
 
 
