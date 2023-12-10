@@ -3,14 +3,29 @@
  const bcrypt=require('bcrypt')
  const jwt=require('jsonwebtoken')
 
- const userSignup=(req,res)=>{
+ const userSignup= async (req,res)=>{
 console.log(req.body);
-USER.findOne({email:req.body.email}).then((response)=>{
-    if(response){
+const email= await USER.findOne({email:req.body.email})
+const number= await  USER.findOne({number:req.body.number})
+    if(email || number){
+      if(email && number){
         console.log('user exists');
-        res.json({usercreated:false,serverconnected:true})
+        res.json({usercreated:false,serverconnected:true,msg:'user exists'})
+      }
+      else{
+        if(number){
+          console.log('number exists');
+          res.json({usercreated:false,serverconnected:true,msg:'number exists'})
+        }
+        else {
+          console.log('email exists');
+          res.json({usercreated:false,serverconnected:true,msg:'email exists'})
+        }
+      }
+       
+       
     }
-     
+    
 
 else{
   
@@ -58,7 +73,7 @@ else{
    
 }
 
-})}
+}
 
 const userLogin = async (req,res)=>{
     console.log(req.body);
